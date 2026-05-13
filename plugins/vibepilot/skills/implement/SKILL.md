@@ -37,7 +37,7 @@ Validate against actual task numbers in `tasks.md` before delegating:
    - Absolute path to `.vibepilot/spec/`
    - The exact task numbers (post-resolution)
    - The literal task lines for those numbers (so the agent doesn't re-parse `tasks.md`)
-   - Reminders: (a) work in given order, deriving scope from `requirements.md` + `plan.md`; (b) flip each task's `- [ ]` → `- [x]` immediately after finishing it, not in a batch — durability matters if interrupted; (c) stop on the first hard blocker rather than expanding scope.
+   - Reminders: (a) work in given order, deriving scope from `requirements.md` + `plan.md`; (b) flip each task's checkbox immediately on completion (durability); (c) stop on the first hard blocker rather than expanding scope.
    - Request return in this exact shape:
      - Completed: `<task numbers or "none">`
      - Files modified: `<paths or "none">`

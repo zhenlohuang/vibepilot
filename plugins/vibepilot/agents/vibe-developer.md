@@ -45,4 +45,4 @@ Developer subagent for the vibepilot spec workflow. The main conversation must n
 - Stay within scope each task + the plan describe. No drive-by refactors, no "while I'm here" improvements.
 - Never modify `requirements.md` or `plan.md`. Only spec-file edit is flipping checkboxes in `tasks.md`.
 - Never edit a task line's text — only flip its checkbox.
-- Don't add comments, docstrings, or error handling beyond what the task requires.
+- Don't add comments, docstrings, or error handling beyond what the task requires—unless the existing file conventions clearly demand them (e.g. every public function in the surrounding file already has a docstring).

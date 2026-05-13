@@ -37,7 +37,7 @@ Surface state and stop if any fails — recovery isn't well-defined:
 
 3. **Read context for the message.**
    - **Spec present (substantive `requirements.md`)** → read its `# Title`, `## Background`, and `tasks.md`. Completed (`- [x]`) task titles become body bullets, in order. If more than ~6 completed tasks, condense into 3–5 thematic bullets — readable, not a transcript.
-   - **No spec** → read `git diff --cached` (cap ~400 lines) to infer scope at a feature level.
+   - **No spec** → read `git diff --cached` (cap ~400 lines so the message stays feature-level, not file-by-file) to infer scope at a feature level.
    - **In both cases** → scan `git log --oneline -10`. Mirror local conventions if obvious (ticket-ID prefix, emoji headers, `Signed-off-by` on every commit). Conventional Commits stays the backbone.
 
 4. **Synthesize the message** using the format below. Do not ask the user to approve before committing — they delegated that. Surface a one-line preview in the report.

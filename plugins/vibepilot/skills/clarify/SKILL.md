@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # /vibepilot:clarify
 
-Orchestrates the `vibe-clarifier` subagent (the same way `/vibepilot:plan` orchestrates `vibe-planner`) and is the only voice that talks to the user.
+Orchestrates the `vibe-clarifier` subagent and is the only voice that talks to the user.
 
 ## Preconditions
 
@@ -16,7 +16,7 @@ Orchestrates the `vibe-clarifier` subagent (the same way `/vibepilot:plan` orche
 
 1. **Read `requirements.md`** once to capture text for the delegation prompt. Any `> seed` line written by `/vibepilot:new` is the starting hypothesis.
 
-2. **Decide append vs. rewrite.** If the file has body beyond `# Requirements` and the seed line (real sections like `## Background` exist), ask via AskUserQuestion:
+2. **Decide append vs. rewrite.** If `requirements.md` has any `##` section (i.e. content beyond `# Requirements` and an optional `> seed` line), ask via AskUserQuestion:
    - `Append / refine existing (Recommended)`
    - `Rewrite from scratch`
 

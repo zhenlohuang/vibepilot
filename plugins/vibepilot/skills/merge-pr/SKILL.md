@@ -48,7 +48,7 @@ Surface state and stop if any fails:
    - `BEHIND` → ask: `Stop — update branch separately (Recommended)` / `Attempt merge anyway`. Don't force-update or rebase.
    - `UNSTABLE` (required checks pass, non-required failing) → ask: `Proceed — non-required checks are failing (Recommended)` / `Stop and investigate`.
    - `statusCheckRollup` has `PENDING` checks → ask: `Wait — let checks finish (Recommended)` / `Proceed without waiting`. Don't auto-poll.
-   - `UNKNOWN` → wait one beat, re-run `gh pr view` once; if still UNKNOWN, surface and stop.
+   - `UNKNOWN` → wait briefly (≈3 s), then re-run `gh pr view` once; if still UNKNOWN, surface and stop.
 
 4. **Ask merge method** built from the repo's allowed set (`mergeCommitAllowed`, `squashMergeAllowed`, `rebaseMergeAllowed`):
    - Only one enabled → skip the prompt, use it, print one line stating the choice.

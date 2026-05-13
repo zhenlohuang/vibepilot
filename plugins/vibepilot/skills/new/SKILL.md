@@ -14,7 +14,7 @@ Non-destructive: refuses to overwrite in-progress work. Use `/vibepilot:clean` t
 
 ## Steps
 
-1. **Check existing state.** Run `ls -la .vibepilot/spec 2>/dev/null`. Treat as in-progress if any of `requirements.md`, `plan.md`, `tasks.md`, `review.md` has body content beyond its `# Title` header (a `> seed` line counts too). If in-progress, stop and tell the user to run `/vibepilot:clean` first, naming the affected files.
+1. **Check existing state.** Run `ls -la .vibepilot/spec 2>/dev/null`. Treat as in-progress if any of `requirements.md`, `plan.md`, `tasks.md`, `review.md` has any `##` section beyond its `# Title` (or `requirements.md` has a `> seed` line). If in-progress, stop and tell the user to run `/vibepilot:clean` first, naming the affected files.
 
    If `.vibepilot/spec` exists as a regular file (not a directory), surface this unusual state to the user and ask how to proceed.
 

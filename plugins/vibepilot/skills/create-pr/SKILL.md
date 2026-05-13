@@ -34,7 +34,7 @@ Surface state and stop if any fails:
 
 2. **Handle uncommitted changes by delegating to `commit`.** If `git status --short` is non-empty, invoke `/vibepilot:commit` (or, if your harness can't, read `plugins/vibepilot/skills/commit/SKILL.md` and follow its Steps inline). After it completes, re-run step 1. If the user aborts and the tree is still dirty, stop.
 
-3. **Surface "behind base" as a warning, not a block.** Print one line: `Branch is N commits behind <base> — rebase/merge separately if you want a linear PR.` and continue.
+3. **Surface "behind base" as a warning, not a block.** Print one line: `Branch is N commits behind <base>. PR will still open; rebase or merge later if you want a linear history.` and continue.
 
 4. **Push the branch if needed.**
    - No upstream → `git push -u origin <branch>`.

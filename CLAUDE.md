@@ -40,10 +40,10 @@ Each `SKILL.md` carries `disable-model-invocation: true` in its frontmatter, so 
 
 ### The spec-driven workflow
 
-The seven skills implement a six-step pipeline whose only durable state is `.vibepilot/spec/` in the user's project (NOT in this repo):
+The six skills implement a five-step pipeline whose only durable state is `.vibepilot/spec/` in the user's project (NOT in this repo):
 
 ```
-new → clarify → plan → tasks → implement → review     (+ clean to wipe)
+new → clarify → plan → implement → review     (+ clean to wipe)
 ```
 
 Four canonical files live there: `requirements.md`, `plan.md`, `tasks.md`, `review.md`. They form an authority hierarchy:
@@ -60,16 +60,16 @@ This is the single most important design rule and it must be preserved. The main
 
 | Skill | Main-thread orchestration | Subagent work |
 |---|---|---|
-| `new`, `tasks`, `clean` | Trivial file ops with no heavy reads/drafts — runs entirely on main thread | — |
+| `new`, `clean` | Trivial file ops with no heavy reads/drafts — runs entirely on main thread | — |
 | `clarify` | Append/rewrite gate, asks the user the surfaced gaps via `AskUserQuestion` | `vibe-clarifier` reads project context, drafts a requirements outline, then writes `requirements.md` |
-| `plan` | Append/rewrite gate, asks the user the surfaced design questions via `AskUserQuestion` | `vibe-planner` explores the codebase, drafts a plan outline, then writes `plan.md` |
+| `plan` | Plan append/rewrite gate, tasks append/rewrite gate (computes existing max number to preserve append-only IDs), asks the user the surfaced design questions via `AskUserQuestion` | `vibe-planner` explores the codebase, drafts a plan outline, then writes both `plan.md` and `tasks.md` |
 | `implement` | Picks task numbers, relays summary | `vibe-developer` reads spec + source, edits code, flips checkboxes in `tasks.md` |
 | `review` | Scope selection, relays summary | `vibe-reviewer` reads diffs + spec, writes `review.md` |
 
 Subagents (`vibe-clarifier`, `vibe-planner`, `vibe-developer`, `vibe-reviewer`) must:
 - Write their output to a file under `.vibepilot/spec/` and return **only a short summary** (< 200 words) to the parent.
 - Never paste plan/diff/file contents into the response.
-- Have strictly bounded write scope (clarifier writes only `requirements.md`; planner writes only `plan.md`; developer writes source code + flips checkboxes in `tasks.md`; reviewer writes only `review.md`).
+- Have strictly bounded write scope (clarifier writes only `requirements.md`; planner writes only `plan.md` and `tasks.md`; developer writes source code + flips checkboxes in `tasks.md`; reviewer writes only `review.md`).
 
 `clarify` and `plan` use a two-phase `mode: draft` / `mode: finalize` pattern. The mode is passed as a plain-text line in the parent prompt. In `mode: draft` the subagent reads context, returns an outline plus the gaps or design uncertainties only the user can resolve, and writes nothing. The main thread then runs 1–N rounds of `AskUserQuestion` on those gaps (skipped entirely if the draft returned none). The main thread re-delegates in `mode: finalize` with the prior outline plus the user's answers, and only then does the subagent write the spec file. This matches Claude Code's own `/plan` (plan mode) orchestration shape.
 
@@ -78,7 +78,7 @@ When editing or adding skills, follow this split. Even small code edits go throu
 ### Invariants worth preserving
 
 - **One spec at a time.** `/vibepilot:new` refuses to overwrite in-progress work; the user must `/vibepilot:clean` first. Keep `new` non-destructive and `clean` non-recreating — the split is deliberate.
-- **Task numbers are append-only.** When `tasks` appends to an existing list, it continues from the existing max — never reuses numbers. `/vibepilot:implement N` and review scopes rely on this.
+- **Task numbers are append-only.** When `plan` appends to an existing `tasks.md`, it continues from the existing max — never reuses numbers. The main thread computes `tasks_existing_max` and passes it into `vibe-planner`'s finalize delegation. `/vibepilot:implement N` and review scopes rely on this.
 - **Checkbox flips are durable.** `vibe-developer` flips `- [ ]` → `- [x]` in `tasks.md` immediately after each task completes, not in a batch — interruption resilience.
 - **Language match.** Skill bodies match the user's conversation language (and the language of `requirements.md` for downstream files). Section headers (`# Plan`, `## Background`) and checkbox prefixes stay in English / canonical form so downstream skills can parse them deterministically.
 - **No drive-by refactors.** Developer subagent stays inside the scope each task + plan describes; if scope blows out, it stops and marks the task blocked rather than expanding.

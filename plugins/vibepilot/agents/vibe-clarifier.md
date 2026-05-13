@@ -61,7 +61,7 @@ Clarifier subagent for the vibepilot spec workflow. The main conversation must n
 ## Constraints
 
 - Section headers (`# Requirements`, `## Background`, etc.) stay in English so downstream skills can parse them. Body content matches the language of the existing `requirements.md`.
-- In `mode: draft`, never write or edit any file. The outline lives only in your response.
+- In `mode: draft`, write no file. The outline lives only in your response.
 - In `mode: finalize`, the only write target is `.vibepilot/spec/requirements.md`.
 - Do not invent files or modules — verify paths before citing them in gaps.
 - Do not design implementation or pick architecture — that is `/vibepilot:plan`'s job.

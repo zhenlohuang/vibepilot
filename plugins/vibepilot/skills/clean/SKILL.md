@@ -17,7 +17,7 @@ Removes `.vibepilot/spec/` entirely. Distinction from `/vibepilot:new`: `new` re
 1. **Check state.** Run `ls -la .vibepilot/spec 2>/dev/null`.
    - Doesn't exist → output `.vibepilot/spec/ does not exist — nothing to clean.` and stop.
    - Exists as a regular file (not a directory) → surface this unusual state and ask the user; do not blindly delete.
-   - Has in-progress content (any of `requirements.md`, `plan.md`, `tasks.md`, `review.md` has body beyond its `# Title` header) → confirm via AskUserQuestion, naming the affected files:
+   - Has in-progress content (any of `requirements.md`, `plan.md`, `tasks.md`, `review.md` has any `##` section beyond its `# Title`, or `requirements.md` has a `> seed` line) → confirm via AskUserQuestion, naming the affected files:
      - `Delete the spec (Recommended)`
      - `Cancel`
 
