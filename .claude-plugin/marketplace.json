@@ -1,0 +1,14 @@
+{
+  "name": "vibepilot",
+  "owner": {
+    "name": "zhenlohuang",
+    "email": "zhenlohuang@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "vibepilot",
+      "source": "./plugins/vibepilot",
+      "description": "Vibe Coding copilot for Claude Code — flow-friendly commands, agents, and skills."
+    }
+  ]
+}
