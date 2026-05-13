@@ -1,91 +1,78 @@
 # vibepilot
 
-A minimal scaffold for building a [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin, distributed as a self-hosted single-plugin marketplace.
+A [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin that turns "vibe coding" into a structured, spec-driven workflow. You stay in flow; vibepilot keeps the spec, plan, tasks, and review tidy in the background.
 
-This repository ships **no** pre-built agents, commands, or skills. The directory layout, manifests, and install workflow are wired up — you add the content.
+Distributed as a self-hosted single-plugin marketplace — install straight from this repo, no registry required.
 
-## Repository layout
+## Installation
 
-```
-vibepilot/
-├── .claude-plugin/
-│   └── marketplace.json          # marketplace metadata (this repo hosts itself)
-├── plugins/
-│   └── vibepilot/                # the plugin
-│       ├── .claude-plugin/
-│       │   └── plugin.json       # plugin manifest
-│       ├── agents/               # subagent definitions (one .md per agent)
-│       ├── commands/             # slash commands (one .md per command)
-│       └── skills/               # skills (one subdir per skill, containing SKILL.md)
-├── README.md
-├── LICENSE
-└── .gitignore
+Inside Claude Code, add this repo as a marketplace and install the plugin:
+
+```text
+/plugin marketplace add zhenlohuang/vibepilot
+/plugin install vibepilot@vibepilot
 ```
 
-The three component directories are kept under git via `.gitkeep` placeholders. Delete the placeholder once you add real content.
-
-## Install locally for development
+Or, if you've cloned the repo locally and want to hack on it:
 
 ```text
 /plugin marketplace add /absolute/path/to/vibepilot
 /plugin install vibepilot@vibepilot
 ```
 
-After editing any file under `plugins/vibepilot/`, run `/plugin reload` in Claude Code to pick up the change without restarting.
+After install, all commands are namespaced under `vibepilot:` — e.g. `/vibepilot:new`. When developing locally, run `/plugin reload` to pick up edits without restarting Claude Code.
 
-Components you add will appear under the `vibepilot:` namespace — for example a command at `plugins/vibepilot/commands/hello.md` is invokable as `/vibepilot:hello`.
+## What you get
 
-## Adding components
+Seven slash commands that drive a six-step spec-driven workflow, plus three internal subagents that handle the heavy lifting (codebase exploration, code edits, review) so your main conversation stays uncluttered.
 
-Each component is a markdown file with YAML frontmatter. Minimal shapes:
+All spec artifacts live in `.vibepilot/spec/` in your project. Only **one** spec lives there at a time — vibepilot is opinionated about this on purpose, so you always know which task is in flight. The directory persists across sessions, so you can close Claude Code mid-task and resume by running the next command.
 
-**Command** — `plugins/vibepilot/commands/<name>.md`
+> Add `.vibepilot/` to your `.gitignore` (or commit it deliberately if you want spec history under version control — that's a team-policy call).
 
-```markdown
----
-description: One-line summary shown in the command palette
-argument-hint: <optional hint, e.g. "<path>">
-allowed-tools: Read, Grep, Bash
----
+## Commands
 
-Instructions for the model when this command runs.
-Use $ARGUMENTS to reference user-provided arguments.
+| Command | What it does | Writes to |
+|---|---|---|
+| `/vibepilot:new [description]` | Initialize a fresh spec workspace. Refuses if a spec is already in progress. | `.vibepilot/spec/*.md` (placeholders) |
+| `/vibepilot:clarify` | Interactively capture requirements (goal, user stories, acceptance criteria, constraints, non-goals). | `.vibepilot/spec/requirements.md` |
+| `/vibepilot:plan` | Design the implementation. Delegates codebase exploration to the `vibe-planner` subagent. | `.vibepilot/spec/plan.md` |
+| `/vibepilot:tasks` | Decompose `requirements.md` + `plan.md` into an ordered checkbox list. | `.vibepilot/spec/tasks.md` |
+| `/vibepilot:implement [N\|N-M\|all]` | Execute tasks via the `vibe-developer` subagent; ticks completed checkboxes. | source code + `tasks.md` |
+| `/vibepilot:review [N\|N-M\|all]` | Audit the changes against the spec via the `vibe-reviewer` subagent. | `.vibepilot/spec/review.md` |
+| `/vibepilot:clean` | Remove `.vibepilot/spec/` entirely (with confirmation). No placeholders left behind. | deletes `.vibepilot/spec/` |
+
+### Typical flow
+
+```text
+/vibepilot:new        add a CSV export to the reports page
+/vibepilot:clarify    # answer questions to lock down requirements
+/vibepilot:plan       # planner subagent drafts the approach
+/vibepilot:tasks      # breaks plan into ordered checklist
+/vibepilot:implement  # developer subagent codes tasks 1..N
+/vibepilot:review     # reviewer subagent audits against the spec
 ```
 
-**Agent** — `plugins/vibepilot/agents/<name>.md`
+You can run partial passes — e.g. `/vibepilot:implement 2-4` to do just tasks 2 through 4, then `/vibepilot:review 2-4` to audit only those.
 
-```markdown
----
-name: <agent-name>
-description: When and why to invoke this subagent
-tools: Read, Grep, Glob, Bash
-model: inherit
----
+### Switching tasks
 
-System prompt for the subagent.
+`/vibepilot:new` is non-destructive: it won't overwrite an in-progress spec. To start a different task, run `/vibepilot:clean` first (you'll be asked to confirm), then `/vibepilot:new` again.
+
+### Resuming
+
+Closed your terminal halfway through? Just open Claude Code in the same project and run the next command — `.vibepilot/spec/` is the source of truth, and every command picks up wherever the files left off.
+
+## Repository layout
+
 ```
-
-**Skill** — `plugins/vibepilot/skills/<skill-name>/SKILL.md`
-
-```markdown
----
-name: <skill-name>
-description: When this skill should auto-load into context
----
-
-Skill content the model reads when the trigger matches.
+vibepilot/
+├── .claude-plugin/marketplace.json   # marketplace metadata (self-hosted)
+└── plugins/vibepilot/
+    ├── .claude-plugin/plugin.json    # plugin manifest
+    ├── agents/                       # vibe-planner, vibe-developer, vibe-reviewer
+    └── skills/                       # new, clarify, plan, tasks, implement, review, clean
 ```
-
-For the authoritative reference on each component type (full frontmatter fields, loading rules, namespacing), see the [Claude Code plugin docs](https://docs.claude.com/en/docs/claude-code/plugins).
-
-## Renaming for your own plugin
-
-To fork this scaffold as a different plugin:
-
-1. Edit `.claude-plugin/marketplace.json` — replace `name`, `plugins[0].name`, `plugins[0].description`, and `owner`.
-2. Edit `plugins/vibepilot/.claude-plugin/plugin.json` — replace `name`, `description`, `author`, `homepage`, `repository`, `keywords`.
-3. Rename the directory `plugins/vibepilot/` to match the new plugin name (the directory name and the `name` field in `plugin.json` should match).
-4. Update this README.
 
 ## License
 
