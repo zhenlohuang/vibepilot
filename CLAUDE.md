@@ -31,12 +31,12 @@ All user-facing commands are namespaced as `/vibepilot:<skill-name>` (the skill 
 .claude-plugin/marketplace.json   # marketplace metadata; points at plugins/vibepilot
 plugins/vibepilot/
 ├── .claude-plugin/plugin.json    # plugin manifest (name, version, author)
-├── agents/*.md                   # vibe-planner, vibe-developer, vibe-reviewer
-├── commands/                     # currently empty; skills double as commands
+├── agents/*.md                   # vibe-clarifier, vibe-planner, vibe-developer, vibe-reviewer
+├── commands/                     # unused; all user entries live under skills/
 └── skills/<name>/SKILL.md        # one directory per slash command
 ```
 
-Each `SKILL.md` and each agent `.md` has YAML frontmatter (`name`, `description`, sometimes `tools` / `model`) followed by the prompt body. The `description` field is what Claude Code matches against user intent to auto-trigger the skill — keep it explicit about *when* to trigger, not just *what* it does.
+Each `SKILL.md` carries `disable-model-invocation: true` in its frontmatter, so the slash commands are **manual-only** — Claude won't auto-trigger them on intent. The `description` field is therefore only used in the command-list UI; keep it to a single line about what the command does, not when to trigger it.
 
 ### The spec-driven workflow
 
@@ -56,17 +56,22 @@ Task lines deliberately do not duplicate context — `vibe-developer` reads `req
 
 ### Main-thread vs. subagent split
 
-This is the single most important design rule and it must be preserved:
+This is the single most important design rule and it must be preserved. The main thread is always the orchestrator and the only voice that talks to the user; subagents do the reads, drafts, and writes in isolated context.
 
-| Skill | Where the work runs | Why |
+| Skill | Main-thread orchestration | Subagent work |
 |---|---|---|
-| `new`, `clarify`, `tasks`, `clean` | **Main thread** | Trivial file ops or require back-and-forth with the user |
-| `plan`, `implement`, `review` | **Delegated to subagent** | Reads source files / diffs — would pollute main context |
+| `new`, `tasks`, `clean` | Trivial file ops with no heavy reads/drafts — runs entirely on main thread | — |
+| `clarify` | Append/rewrite gate, asks the user the surfaced gaps via `AskUserQuestion` | `vibe-clarifier` reads project context, drafts a requirements outline, then writes `requirements.md` |
+| `plan` | Append/rewrite gate, asks the user the surfaced design questions via `AskUserQuestion` | `vibe-planner` explores the codebase, drafts a plan outline, then writes `plan.md` |
+| `implement` | Picks task numbers, relays summary | `vibe-developer` reads spec + source, edits code, flips checkboxes in `tasks.md` |
+| `review` | Scope selection, relays summary | `vibe-reviewer` reads diffs + spec, writes `review.md` |
 
-Subagents (`vibe-planner`, `vibe-developer`, `vibe-reviewer`) must:
+Subagents (`vibe-clarifier`, `vibe-planner`, `vibe-developer`, `vibe-reviewer`) must:
 - Write their output to a file under `.vibepilot/spec/` and return **only a short summary** (< 200 words) to the parent.
 - Never paste plan/diff/file contents into the response.
-- Have strictly bounded write scope (planner writes only `plan.md`; developer writes source code + flips checkboxes in `tasks.md`; reviewer writes only `review.md`).
+- Have strictly bounded write scope (clarifier writes only `requirements.md`; planner writes only `plan.md`; developer writes source code + flips checkboxes in `tasks.md`; reviewer writes only `review.md`).
+
+`clarify` and `plan` use a two-phase `mode: draft` / `mode: finalize` pattern. The mode is passed as a plain-text line in the parent prompt. In `mode: draft` the subagent reads context, returns an outline plus the gaps or design uncertainties only the user can resolve, and writes nothing. The main thread then runs 1–N rounds of `AskUserQuestion` on those gaps (skipped entirely if the draft returned none). The main thread re-delegates in `mode: finalize` with the prior outline plus the user's answers, and only then does the subagent write the spec file. This matches Claude Code's own `/plan` (plan mode) orchestration shape.
 
 When editing or adding skills, follow this split. Even small code edits go through `vibe-developer` — consistency matters more than the cost.
 
@@ -81,6 +86,7 @@ When editing or adding skills, follow this split. Even small code edits go throu
 ## Editing skill prompts
 
 When adjusting a `SKILL.md`:
-- The `description` frontmatter is auto-trigger material — be specific about when the skill should fire (and when it shouldn't), since Claude Code uses it to disambiguate.
-- Preconditions sections matter: each skill should refuse and point to the prerequisite skill when its inputs aren't ready, rather than silently doing partial work.
+- Keep `disable-model-invocation: true` in the frontmatter. vibepilot's commands are manual-only; don't add auto-trigger keyword lists to `description` — one-line "what it does" is enough.
+- Runtime rules (Language matching, hard constraints) must live in the `SKILL.md` itself — **not** in this `CLAUDE.md`. End users who install the plugin don't load this file; only contents of `SKILL.md` and `agents/*.md` reach them.
+- Preconditions sections matter: each skill should refuse and point to the prerequisite skill when inputs aren't ready, rather than silently doing partial work.
 - Keep the constraints list — it's how the skill resists being asked to overreach (e.g., `plan` not reading code itself; `implement` not editing `plan.md`).
