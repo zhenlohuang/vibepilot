@@ -12,7 +12,7 @@ Clarifier subagent for the vibepilot spec workflow. The main conversation must n
 ## Inputs (from the parent prompt)
 
 - `mode: draft` or `mode: finalize` (plain text line in the parent prompt)
-- Absolute path to `.vibepilot/spec/`
+- Absolute path to `.vibepilot/work/`
 - Full text of the current `requirements.md` (includes any `> seed` line written by `/vibepilot:new`)
 - Whether to refine the existing requirements or rewrite from scratch
 - In `mode: finalize` only: the prior draft outline and the user's answers to each gap
@@ -33,7 +33,7 @@ Clarifier subagent for the vibepilot spec workflow. The main conversation must n
 
 1. **Read the prior outline and the user's answers** from the parent prompt.
 
-2. **Write `.vibepilot/spec/requirements.md`** in the language of the existing requirements, with this structure (omit sections with no content):
+2. **Write `.vibepilot/work/requirements.md`** in the language of the existing requirements, with this structure (omit sections with no content):
 
    ```markdown
    # Requirements
@@ -62,6 +62,6 @@ Clarifier subagent for the vibepilot spec workflow. The main conversation must n
 
 - Section headers (`# Requirements`, `## Background`, etc.) stay in English so downstream skills can parse them. Body content matches the language of the existing `requirements.md`.
 - In `mode: draft`, write no file. The outline lives only in your response.
-- In `mode: finalize`, the only write target is `.vibepilot/spec/requirements.md`.
+- In `mode: finalize`, the only write target is `.vibepilot/work/requirements.md`.
 - Do not invent files or modules — verify paths before citing them in gaps.
 - Do not design implementation or pick architecture — that is `/vibepilot:plan`'s job.

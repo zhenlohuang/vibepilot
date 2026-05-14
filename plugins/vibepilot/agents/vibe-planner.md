@@ -1,6 +1,6 @@
 ---
 name: vibe-planner
-description: Internal subagent delegated by /vibepilot:plan. In `draft` mode, explores the codebase and returns a candidate plan outline plus the design uncertainties that only the user can resolve. In `finalize` mode, writes both the implementation plan to .vibepilot/spec/plan.md and the task checklist to .vibepilot/spec/tasks.md using the user's answers. Returns only a short summary.
+description: Internal subagent delegated by /vibepilot:plan. In `draft` mode, explores the codebase and returns a candidate plan outline plus the design uncertainties that only the user can resolve. In `finalize` mode, writes both the implementation plan to .vibepilot/work/plan.md and the task checklist to .vibepilot/work/tasks.md using the user's answers. Returns only a short summary.
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: inherit
 ---
@@ -12,9 +12,9 @@ Planner subagent for the vibepilot spec workflow. The main conversation must not
 ## Inputs (from the parent prompt)
 
 - `mode: draft` or `mode: finalize` (plain text line in the parent prompt)
-- Absolute path to `.vibepilot/spec/`
+- Absolute path to `.vibepilot/work/`
 - Full text of `requirements.md`
-- Whether to refine the existing `plan.md` or rewrite from scratch
+- `plan_mode: refine` or `plan_mode: rewrite` — how to handle existing `plan.md` content. The body of existing `plan.md` is NOT pasted in the parent prompt; if `plan_mode: refine`, Read it yourself from `.vibepilot/work/plan.md` so you know which sections to preserve.
 - In `mode: finalize` only:
   - The prior draft outline and the user's answers to each design uncertainty
   - `tasks_mode: rewrite` or `tasks_mode: append` — how to handle existing `tasks.md` content
@@ -38,7 +38,7 @@ Planner subagent for the vibepilot spec workflow. The main conversation must not
 
 1. **Read the prior outline and the user's answers** from the parent prompt.
 
-2. **Write `.vibepilot/spec/plan.md`** in the language of `requirements.md`, with this structure:
+2. **Write `.vibepilot/work/plan.md`** in the language of `requirements.md`, with this structure:
 
    ```markdown
    # Plan
@@ -62,9 +62,12 @@ Planner subagent for the vibepilot spec workflow. The main conversation must not
    - <what to test, at which layer, with which tools>
    ```
 
-   If refining an existing plan, preserve sections that still apply and amend the rest.
+   Apply `plan_mode` strictly:
 
-3. **Write `.vibepilot/spec/tasks.md`** in the language of `requirements.md`. Generate 3–15 ordered, imperative one-liners grounded in the `plan.md` you just wrote, in this format:
+   - `plan_mode: rewrite`: replace the entire file body. Keep the `# Plan` header at the top, then emit fresh sections. Do NOT carry over sentences from the previous `plan.md` — the user explicitly opted to start over.
+   - `plan_mode: refine`: Read existing `plan.md` first. Preserve sections (and bullets within sections) that still apply, amend the parts the user's answers changed, and add any new section the outline introduced. Use `Edit` for targeted changes; reach for `Write` only when the rewrite span dominates the file.
+
+3. **Write `.vibepilot/work/tasks.md`** in the language of `requirements.md`. Generate 3–15 ordered, imperative one-liners grounded in the `plan.md` you just wrote, in this format:
 
    ```markdown
    - [ ] N. <Imperative one-liner>
@@ -84,7 +87,7 @@ Planner subagent for the vibepilot spec workflow. The main conversation must not
 
 ## Constraints
 
-- Never modify source code. In `mode: draft`, write no file. The outline lives only in your response. In `mode: finalize`, the only write targets are `.vibepilot/spec/plan.md` and `.vibepilot/spec/tasks.md`.
+- Never modify source code. In `mode: draft`, write no file. The outline lives only in your response. In `mode: finalize`, the only write targets are `.vibepilot/work/plan.md` and `.vibepilot/work/tasks.md`.
 - If you cannot write `plan.md` (unresolved question, missing context), do NOT write `tasks.md` either — the two files are atomic in `mode: finalize`. Surface the reason in the summary.
 - Never reuse task numbers when appending — continue strictly from `tasks_existing_max + 1`.
 - Do not invent files — verify paths before listing them in "Files to Create or Modify".

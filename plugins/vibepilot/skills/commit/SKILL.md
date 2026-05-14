@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # /vibepilot:commit
 
-Generic: works with or without an active `.vibepilot/spec/`. With a spec, body bullets come from completed (`- [x]`) task titles; without one, from the staged diff.
+Generic: works with or without an active `.vibepilot/work/`. With a spec, body bullets come from completed (`- [x]`) task titles; without one, from the staged diff.
 
 ## Preconditions
 
@@ -80,6 +80,6 @@ Surface state and stop if any fails — recovery isn't well-defined:
 - Stage with `git add -u` or explicit paths only. Never `-A` / `.`.
 - No `--amend`, `--no-verify`, `--no-gpg-sign`, `--force`, `--allow-empty`.
 - Push only after explicit affirmative answer.
-- Treat `.vibepilot/spec/` as read-only. No source-file edits.
+- Treat `.vibepilot/work/` as read-only. No source-file edits.
 - **No AI-attribution trailers.** Do not append `🤖 Generated with …` or `Co-Authored-By: Claude …`.
 - Do not paste full diff or full commit body — one-line preview + `git log -1 --oneline` is the whole report.

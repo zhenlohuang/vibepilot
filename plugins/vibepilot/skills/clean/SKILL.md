@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # /vibepilot:clean
 
-Removes `.vibepilot/spec/` entirely. Distinction from `/vibepilot:new`: `new` resets and starts over; `clean` abandons and leaves nothing.
+Removes `.vibepilot/work/` entirely. Distinction from `/vibepilot:new`: `new` resets and starts over; `clean` abandons and leaves nothing.
 
 ## Preconditions
 
@@ -14,22 +14,22 @@ Removes `.vibepilot/spec/` entirely. Distinction from `/vibepilot:new`: `new` re
 
 ## Steps
 
-1. **Check state.** Run `ls -la .vibepilot/spec 2>/dev/null`.
-   - Doesn't exist → output `.vibepilot/spec/ does not exist — nothing to clean.` and stop.
+1. **Check state.** Run `ls -la .vibepilot/work 2>/dev/null`.
+   - Doesn't exist → output `.vibepilot/work/ does not exist — nothing to clean.` and stop.
    - Exists as a regular file (not a directory) → surface this unusual state and ask the user; do not blindly delete.
    - Has in-progress content (any of `requirements.md`, `plan.md`, `tasks.md`, `review.md` has any `##` section beyond its `# Title`, or `requirements.md` has a `> seed` line) → confirm via AskUserQuestion, naming the affected files:
      - `Delete the spec (Recommended)`
      - `Cancel`
 
-     On cancel: output `Cancelled — .vibepilot/spec/ left untouched.` and stop.
+     On cancel: output `Cancelled — .vibepilot/work/ left untouched.` and stop.
 
-2. **Delete.** `rm -rf .vibepilot/spec`.
+2. **Delete.** `rm -rf .vibepilot/work`.
 
-3. **Report** one line: `.vibepilot/spec/ removed. Run /vibepilot:new when you're ready to start a new spec.`
+3. **Report** one line: `.vibepilot/work/ removed. Run /vibepilot:new when you're ready to start a new spec.`
 
 ## Constraints
 
 - Do not invoke the `Agent` tool.
-- Do not delete the parent `.vibepilot/` directory — only `.vibepilot/spec/`.
+- Do not delete the parent `.vibepilot/` directory — only `.vibepilot/work/`.
 - Do not recreate placeholder files. Re-initializing is `/vibepilot:new`'s job.
 - Do not touch source code, git state, or any other project file.

@@ -7,7 +7,7 @@ argument-hint: "[PR number | PR URL]"
 
 # /vibepilot:review-pr
 
-Thin wrapper around Claude Code's built-in `/review` skill. Distinct from `/vibepilot:review`, which audits **local spec implementation** against `.vibepilot/spec/`.
+Thin wrapper around Claude Code's built-in `/review` skill. Distinct from `/vibepilot:review`, which audits **local spec implementation** against `.vibepilot/work/`.
 
 ## Preconditions
 
@@ -44,5 +44,5 @@ Thin wrapper around Claude Code's built-in `/review` skill. Distinct from `/vibe
 - **Sibling-skill boundary.** If the user clearly meant local audit (no PR exists, `tasks.md` has unchecked items, phrasing is about "my implementation"), redirect to `/vibepilot:review` and stop.
 - Do not modify code, edit the PR title/body, or post comments.
 - Do not create, merge, approve, request reviewers on, or change draft/ready state.
-- Treat `.vibepilot/spec/` as read-only and, in this skill, untouched — don't supplement the PR review with local spec.
+- Treat `.vibepilot/work/` as read-only and, in this skill, untouched — don't supplement the PR review with local spec.
 - On precondition failure, surface verbatim and stop. Don't retry, don't guess a different PR.

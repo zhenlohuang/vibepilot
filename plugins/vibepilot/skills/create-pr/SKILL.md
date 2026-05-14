@@ -49,7 +49,7 @@ Surface state and stop if any fails:
      - Acceptance Criteria → primary input for Test plan
      - `plan.md` (high-level approach) → flavor for Summary, not its skeleton
      - `tasks.md` → **only** for completion state. Count `- [ ]` vs `- [x]`. **Do not enumerate task titles into the body** — task lists read as transcripts; PR readers want feature behavior. If some `- [ ]` remain, append a `Note: M of N implementation tasks still open` line in Summary.
-     - `.vibepilot/spec/review.md` if present → `PASS` outcome biases step 7 toward Ready; anything else toward Draft.
+     - `.vibepilot/work/review.md` if present → `PASS` outcome biases step 7 toward Ready; anything else toward Draft.
    - **No spec** → infer feature shape from `git log <base>..HEAD --oneline` (already gathered). If thin, supplement once with `git diff <base>..HEAD --stat`. Don't read the full diff.
    - **In both cases** → if recent merged PRs show a clear convention (ticket-ID prefix `[ABC-123]`, scope tag `feat:`), mirror it. Run `gh pr list --state merged --limit 10 --json title -q '.[].title'` once if unsure. Don't invent a convention.
 
@@ -99,7 +99,7 @@ Surface state and stop if any fails:
 - Stay in the main thread — do not invoke the `Agent` tool.
 - Never force-push. No `--force`, no `--force-with-lease`, no `--no-verify` on `git push`. On rejection, surface and stop; the user decides recovery.
 - Never pass `--base`, `--head`, `--reviewer`, `--assignee`, `--label`, or `--milestone` to `gh pr create`. Those are different intents — let the user ask deliberately.
-- Do not edit source files. Treat `.vibepilot/spec/` as read-only.
+- Do not edit source files. Treat `.vibepilot/work/` as read-only.
 - Do not paste full diff, full commit log, or full PR body — title preview + `gh pr view` URL is the whole report.
 - **No AI-attribution trailers** anywhere in the title or body.
 - If the auto-commit path (step 2) was taken and the user opted not to push from inside `commit`, do not push later in step 4 unless the branch is genuinely ahead at re-check.

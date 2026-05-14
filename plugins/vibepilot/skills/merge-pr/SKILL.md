@@ -7,7 +7,7 @@ argument-hint: "[PR number | PR URL]"
 
 # /vibepilot:merge-pr
 
-Generic with respect to `.vibepilot/spec/` — merging is post-PR, spec has no role.
+Generic with respect to `.vibepilot/work/` — merging is post-PR, spec has no role.
 
 ## Preconditions
 
@@ -87,7 +87,7 @@ Surface state and stop if any fails:
 - **No retries on `gh` failure.** Surface verbatim and stop.
 - **No force-pushing or rebasing the PR branch.** `BEHIND` / `DIRTY` → stop.
 - Stay in the main thread — do not invoke the `Agent` tool.
-- Treat `.vibepilot/spec/` as read-only and untouched.
+- Treat `.vibepilot/work/` as read-only and untouched.
 - **Do not run `git branch -d` yourself.** Use `--delete-branch` if the user opted in (step 5); the hint in step 7 is text-only.
 - Do not paste PR body, full diff, full check list, or full review thread — the step 2 / 3 / 7 outputs are the entire report.
 - **No AI-attribution trailers** in any surface text.

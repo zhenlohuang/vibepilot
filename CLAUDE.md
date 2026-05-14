@@ -40,7 +40,7 @@ Each `SKILL.md` carries `disable-model-invocation: true` in its frontmatter, so 
 
 ### The spec-driven workflow
 
-The six skills implement a five-step pipeline whose only durable state is `.vibepilot/spec/` in the user's project (NOT in this repo):
+The six skills implement a five-step pipeline whose only durable state is `.vibepilot/work/` in the user's project (NOT in this repo):
 
 ```
 new → clarify → plan → implement → review     (+ clean to wipe)
@@ -60,14 +60,15 @@ This is the single most important design rule and it must be preserved. The main
 
 | Skill | Main-thread orchestration | Subagent work |
 |---|---|---|
-| `new`, `clean` | Trivial file ops with no heavy reads/drafts — runs entirely on main thread | — |
+| `new` | Trivial file ops on main thread. On non-empty `.vibepilot/work/`, asks `Clear and start fresh` vs `Cancel` via `AskUserQuestion`, then re-initializes the four placeholders. | — |
+| `clean` | Trivial file ops on main thread. On non-empty `.vibepilot/work/`, asks to confirm, then deletes — no re-init. | — |
 | `clarify` | Append/rewrite gate, asks the user the surfaced gaps via `AskUserQuestion` | `vibe-clarifier` reads project context, drafts a requirements outline, then writes `requirements.md` |
 | `plan` | Plan append/rewrite gate, tasks append/rewrite gate (computes existing max number to preserve append-only IDs), asks the user the surfaced design questions via `AskUserQuestion` | `vibe-planner` explores the codebase, drafts a plan outline, then writes both `plan.md` and `tasks.md` |
-| `implement` | Picks task numbers, relays summary | `vibe-developer` reads spec + source, edits code, flips checkboxes in `tasks.md` |
-| `review` | Scope selection, relays summary | `vibe-reviewer` reads diffs + spec, writes `review.md` |
+| `implement` | Resolves the task set (default: every `- [ ]` in order; trusts whatever scope the user describes), delegates once, relays summary. | `vibe-developer` reads spec + source, edits code, flips checkboxes in `tasks.md` |
+| `review` | Resolves the diff scope (default: uncommitted, branch-vs-base when clean; trusts whatever scope the user describes — task refs, branch names, paths, free-form), delegates once, relays summary. | `vibe-reviewer` reads diffs + spec, writes `review.md` |
 
 Subagents (`vibe-clarifier`, `vibe-planner`, `vibe-developer`, `vibe-reviewer`) must:
-- Write their output to a file under `.vibepilot/spec/` and return **only a short summary** (< 200 words) to the parent.
+- Write their output to a file under `.vibepilot/work/` and return **only a short summary** (< 200 words) to the parent.
 - Never paste plan/diff/file contents into the response.
 - Have strictly bounded write scope (clarifier writes only `requirements.md`; planner writes only `plan.md` and `tasks.md`; developer writes source code + flips checkboxes in `tasks.md`; reviewer writes only `review.md`).
 
@@ -77,8 +78,8 @@ When editing or adding skills, follow this split. Even small code edits go throu
 
 ### Invariants worth preserving
 
-- **One spec at a time.** `/vibepilot:new` refuses to overwrite in-progress work; the user must `/vibepilot:clean` first. Keep `new` non-destructive and `clean` non-recreating — the split is deliberate.
-- **Task numbers are append-only.** When `plan` appends to an existing `tasks.md`, it continues from the existing max — never reuses numbers. The main thread computes `tasks_existing_max` and passes it into `vibe-planner`'s finalize delegation. `/vibepilot:implement N` and review scopes rely on this.
+- **One spec at a time.** `/vibepilot:new` will not overwrite in-progress work silently — it surfaces the existing state and only re-initializes after explicit `Clear and start fresh` confirmation. `/vibepilot:clean` remains the wipe-without-re-init path. Both gate on explicit user confirmation; the overlap on the wipe step is intentional.
+- **Task numbers are append-only.** When `plan` appends to an existing `tasks.md`, it continues from the existing max — never reuses numbers. The main thread computes `tasks_existing_max` and passes it into `vibe-planner`'s finalize delegation. Stable IDs let `review`'s per-task assessment refer to tasks unambiguously across re-plans.
 - **Checkbox flips are durable.** `vibe-developer` flips `- [ ]` → `- [x]` in `tasks.md` immediately after each task completes, not in a batch — interruption resilience.
 - **Language match.** Skill bodies match the user's conversation language (and the language of `requirements.md` for downstream files). Section headers (`# Plan`, `## Background`) and checkbox prefixes stay in English / canonical form so downstream skills can parse them deterministically.
 - **No drive-by refactors.** Developer subagent stays inside the scope each task + plan describes; if scope blows out, it stops and marks the task blocked rather than expanding.

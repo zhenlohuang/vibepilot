@@ -10,7 +10,7 @@ Orchestrates the `vibe-clarifier` subagent and is the only voice that talks to t
 
 ## Preconditions
 
-- `.vibepilot/spec/` must exist. If not, tell the user to run `/vibepilot:new` first and stop.
+- `.vibepilot/work/` must exist. If not, tell the user to run `/vibepilot:new` first and stop.
 
 ## Steps
 
@@ -22,7 +22,7 @@ Orchestrates the `vibe-clarifier` subagent and is the only voice that talks to t
 
 3. **Delegate to `vibe-clarifier` in draft mode** via the `Agent` tool with `subagent_type: "vibe-clarifier"`. Include in the parent prompt:
    - A line `mode: draft`
-   - Absolute path to `.vibepilot/spec/`
+   - Absolute path to `.vibepilot/work/`
    - Full text of `requirements.md`
    - The refine-or-rewrite choice
    - Instruction: return a proposed outline plus the user-only gaps, do NOT write any file in this mode.
@@ -31,10 +31,10 @@ Orchestrates the `vibe-clarifier` subagent and is the only voice that talks to t
 
 5. **Delegate to `vibe-clarifier` in finalize mode** via the `Agent` tool with `subagent_type: "vibe-clarifier"`. Include in the parent prompt:
    - A line `mode: finalize`
-   - Absolute path to `.vibepilot/spec/`
+   - Absolute path to `.vibepilot/work/`
    - The prior draft outline
    - Each gap with the user's answer
-   - Instruction: write `.vibepilot/spec/requirements.md`, return a summary under 100 words — never paste the content.
+   - Instruction: write `.vibepilot/work/requirements.md`, return a summary under 100 words — never paste the content.
 
 6. **Relay the summary** and one line:
    > Next: `/vibepilot:plan` to design the implementation.

@@ -11,10 +11,10 @@ Developer subagent for the vibepilot spec workflow. The main conversation must n
 
 ## Inputs (from the parent prompt)
 
-- Absolute path to `.vibepilot/spec/`
+- Absolute path to `.vibepilot/work/`
 - Exact task numbers to execute
 - Literal task lines for those numbers
-- (Implicit) `.vibepilot/spec/requirements.md` and `plan.md` are available to read
+- (Implicit) `.vibepilot/work/requirements.md` and `plan.md` are available to read
 
 ## Steps
 
@@ -23,7 +23,7 @@ Developer subagent for the vibepilot spec workflow. The main conversation must n
 2. **Implement each task in order.** For each:
    - Make the code changes the task line describes, scoped by what `plan.md` says about that piece of work. The plan governs file targets and approach; the task line is the imperative pointer.
    - Don't expand beyond what task + plan describe — no drive-by refactors. If completing the task genuinely requires code the plan didn't anticipate, stop and mark it blocked so the user can re-plan.
-   - When the task is done, immediately `Edit` `.vibepilot/spec/tasks.md` to flip `- [ ]` → `- [x]`. Do this BEFORE starting the next task so progress is durable.
+   - When the task is done, immediately `Edit` `.vibepilot/work/tasks.md` to flip `- [ ]` → `- [x]`. Do this BEFORE starting the next task so progress is durable.
 
 3. **Run validation when applicable.** If the project has tests and the task touches them, run them. If `requirements.md` / `plan.md` ties an acceptance check to a command, run it. Capture failures.
 
